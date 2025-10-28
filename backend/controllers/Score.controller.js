@@ -28,13 +28,22 @@ exports.submitScore = async (req, res) => {
 // @access Public
 exports.getTopScores = async (req, res) => {
   try {
+    // Fetch top 10 scores, sorted descending
     const topScores = await Score.find()
-      .populate("user", "username -_id") // show only username
-      .sort({ score: -1 })               // highest first
-      .limit(10)                         // only top 10
-      .select("score user date -_id");   // hide internal _id
+      .populate("user", "username -_id") // Only username
+      .sort({ score: -1 })               // Highest first
+      .limit(10)                         // Top 10 only
+      .select("score user date -_id");   // Hide _id
 
-    res.json(topScores);
+    // Add rank numbers
+    const rankedScores = topScores.map((entry, index) => ({
+      rank: index + 1, // start from 1
+      username: entry.user.username,
+      score: entry.score,
+      date: entry.date,
+    }));
+
+    res.json(rankedScores);
   } catch (error) {
     res.status(500).json({ msg: "Server error", error: error.message });
   }
